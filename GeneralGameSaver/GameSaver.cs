@@ -16,16 +16,31 @@ namespace GeneralGameSaver
     public partial class GameSaver : Form
     {
         private AppSettings _appSettings;
+        private readonly List<Icon> _iconList;
         public GameSaver()
         {
-            InitializeComponent();
+            InitializeComponent(); 
+            _iconList = new List<Icon>();
+            loadIcons();
             _appSettings = new AppSettings();
             if (IsSettingsReady())
             {
-                StartStop(true);
+                StartStop(_appSettings.AutoStart);
             }
             updateList();
             updateUI();
+        }
+
+        private enum ImagesEnum { GameSaverStop, GameSaver1, GameSaver2, GameSaver3, GameSaver4, GameSaver5, GameSaver6, GameSaver7, GameSaver8, GameSaver9, END }
+        private void loadIcons()
+        {
+            for (ImagesEnum i = 0; i < ImagesEnum.END; i++)
+            {
+                var nm = i.ToString();
+                var img = (Bitmap)Properties.Resources.ResourceManager.GetObject(nm);
+                var ico = Icon.FromHandle(img.GetHicon());
+                _iconList.Add(ico);
+            }
         }
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
@@ -50,7 +65,7 @@ namespace GeneralGameSaver
             }
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void bSave_Click(object sender, EventArgs e)
         {
             saveGame();
         }
@@ -110,13 +125,16 @@ namespace GeneralGameSaver
         private void updateUI()
         {
             var setReady = IsSettingsReady();
-            button3.Enabled = !timer1.Enabled && setReady;
-            button4.Enabled = timer1.Enabled;
-            button2.Enabled = setReady;
-            button1.Enabled = setReady && listView1.SelectedItems.Count > 0;
+            bStart.Enabled = !timer1.Enabled && setReady;
+            bStop.Enabled = timer1.Enabled;
+            bSave.Enabled = setReady;
+            bRestore.Enabled = setReady && listView1.SelectedItems.Count > 0;
             bRemove.Enabled = listView1.SelectedItems.Count > 0;
             toolStripStatusLabel1.Text = timer1.Enabled ? "Working..." : "Stopped";
             toolStripStatusLabel2.Text = _appSettings.GameCatalog;
+            if (setReady) notifyIcon1.Icon = _iconList[0];
+            cmStart.Enabled = !timer2.Enabled;
+            cmStop.Enabled = timer2.Enabled;
         }
 
         private bool IsSettingsReady()
@@ -189,19 +207,19 @@ namespace GeneralGameSaver
             updateUI();
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        private void bStart_Click(object sender, EventArgs e)
         {
             StartStop(true);
             updateUI();
         }
 
-        private void button4_Click(object sender, EventArgs e)
+        private void bStop_Click(object sender, EventArgs e)
         {
             StartStop(false);
             updateUI();
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void bRestore_Click(object sender, EventArgs e)
         {
             //restore game
             var file = (string) listView1.SelectedItems[0].Tag;
@@ -248,6 +266,7 @@ namespace GeneralGameSaver
                 toolStripProgressBar1.Value = 0;
                 toolStripStatusLabel1.Text = "Wating";
                 toolStripStatusLabel1.ForeColor = Color.Green;
+                notifyIcon1.Icon = _iconList[1];
             }
             else
             {
@@ -257,9 +276,12 @@ namespace GeneralGameSaver
                 toolStripStatusLabel1.Text = "Stopped";
                 toolStripStatusLabel1.ForeColor = Color.Black;
                 toolStripStatusLabel4.Text = "";
+                notifyIcon1.Icon = _iconList[0];
             }
 
         }
+
+        private int _imageNo = (int)ImagesEnum.GameSaver9;
         /// <summary>
         /// Update status
         /// </summary>
@@ -267,6 +289,8 @@ namespace GeneralGameSaver
         /// <param name="e"></param>
         private void timer2_Tick(object sender, EventArgs e)
         {
+            notifyIcon1.Icon = _iconList[_imageNo--];
+            if (_imageNo < (int) ImagesEnum.GameSaver1) _imageNo = (int) ImagesEnum.GameSaver9;
             var t = Environment.TickCount - _startTimer;
             toolStripProgressBar1.Value = t;
             toolStripStatusLabel4.Text = new TimeSpan(0,0,0,((int)_appSettings.SaveInterval.TotalMilliseconds - t)/1000).ToString("g");
@@ -292,6 +316,19 @@ namespace GeneralGameSaver
         private void listView1_MouseDown(object sender, MouseEventArgs e)
         {
             updateUI();
+        }
+
+        private void GameSaver_Resize(object sender, EventArgs e)
+        {
+            if (this.WindowState == FormWindowState.Minimized)
+                this.Hide();
+        }
+
+        private void notifyIcon1_DoubleClick(object sender, EventArgs e)
+        {
+            this.Visible = true;
+            if (this.WindowState == FormWindowState.Minimized)
+                this.WindowState = FormWindowState.Normal;
         }
     }
 }
