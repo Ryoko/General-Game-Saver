@@ -65,6 +65,9 @@
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.cmExit = new System.Windows.Forms.ToolStripMenuItem();
             this.stopToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.colComment = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.imageList1 = new System.Windows.Forms.ImageList(this.components);
+            this.bLock = new System.Windows.Forms.Button();
             this.statusStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -198,7 +201,8 @@
             // 
             this.listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.colName,
-            this.colDate});
+            this.colDate,
+            this.colComment});
             this.listView1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.listView1.FullRowSelect = true;
             this.listView1.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
@@ -206,6 +210,7 @@
             this.listView1.MultiSelect = false;
             this.listView1.Name = "listView1";
             this.listView1.Size = new System.Drawing.Size(517, 602);
+            this.listView1.SmallImageList = this.imageList1;
             this.listView1.Sorting = System.Windows.Forms.SortOrder.Descending;
             this.listView1.TabIndex = 2;
             this.listView1.UseCompatibleStateImageBehavior = false;
@@ -215,12 +220,12 @@
             // colName
             // 
             this.colName.Text = "Name";
-            this.colName.Width = 300;
+            this.colName.Width = 250;
             // 
             // colDate
             // 
             this.colDate.Text = "Date";
-            this.colDate.Width = 200;
+            this.colDate.Width = 130;
             // 
             // bRestore
             // 
@@ -260,6 +265,7 @@
             // 
             // panel2
             // 
+            this.panel2.Controls.Add(this.bLock);
             this.panel2.Controls.Add(this.bRemove);
             this.panel2.Controls.Add(this.bRestore);
             this.panel2.Controls.Add(this.bSave);
@@ -359,6 +365,30 @@
             this.stopToolStripMenuItem.Text = "Stop";
             this.stopToolStripMenuItem.Click += new System.EventHandler(this.bStop_Click);
             // 
+            // colComment
+            // 
+            this.colComment.Text = "Comment";
+            this.colComment.Width = 100;
+            // 
+            // imageList1
+            // 
+            this.imageList1.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageList1.ImageStream")));
+            this.imageList1.TransparentColor = System.Drawing.Color.Transparent;
+            this.imageList1.Images.SetKeyName(0, "lock1.png");
+            this.imageList1.Images.SetKeyName(1, "lock2.png");
+            this.imageList1.Images.SetKeyName(2, "Lock32.png");
+            // 
+            // bLock
+            // 
+            this.bLock.Enabled = false;
+            this.bLock.Location = new System.Drawing.Point(3, 175);
+            this.bLock.Name = "bLock";
+            this.bLock.Size = new System.Drawing.Size(75, 23);
+            this.bLock.TabIndex = 7;
+            this.bLock.Text = "Lock";
+            this.bLock.UseVisualStyleBackColor = true;
+            this.bLock.Click += new System.EventHandler(this.bLock_Click);
+            // 
             // GameSaver
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -421,6 +451,9 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripMenuItem cmExit;
         private System.Windows.Forms.ToolStripMenuItem stopToolStripMenuItem;
+        private System.Windows.Forms.ColumnHeader colComment;
+        private System.Windows.Forms.ImageList imageList1;
+        private System.Windows.Forms.Button bLock;
     }
 }
 

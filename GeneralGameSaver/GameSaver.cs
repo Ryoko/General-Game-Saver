@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.Common;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -23,12 +26,12 @@ namespace GeneralGameSaver
             _iconList = new List<Icon>();
             loadIcons();
             _appSettings = new AppSettings();
+            updateList();
+            updateUI();
             if (IsSettingsReady())
             {
                 StartStop(_appSettings.AutoStart);
             }
-            updateList();
-            updateUI();
         }
 
         private enum ImagesEnum { GameSaverStop, GameSaver1, GameSaver2, GameSaver3, GameSaver4, GameSaver5, GameSaver6, GameSaver7, GameSaver8, GameSaver9, END }
@@ -79,6 +82,7 @@ namespace GeneralGameSaver
             using (var zipfile = new Ionic.Zip.ZipFile())
             {
                 RecursiveArchivate(path, zipfile, "", ref dt);
+                dt = new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second);
                 if (dt <= _lastArchiveTime) return;
                 var name = Path.GetFileNameWithoutExtension(_appSettings.GameCatalog);
                 var filename = string.Format("{0}\\savegame_{1}_{2}.zip", _appSettings.SaveCatalog, dt.ToString("yyMMdd-HHmmss"), name);
@@ -104,17 +108,34 @@ namespace GeneralGameSaver
             }
         }
 
-        private Dictionary<string, string> GetArchives()
+        private Dictionary<string, ArchiveInfo> GetArchives()
         {
-            var list = new Dictionary<string, string>();
+ //           Shaman.DotNet archiveInfo
+            var ci = Thread.CurrentThread.CurrentUICulture;
+            var re = new Regex(@"^savegame_([\d-]+)_(.+)");
+            var list = new Dictionary<string, ArchiveInfo>();
             var sf = _appSettings.SaveCatalog;
             if (string.IsNullOrEmpty(sf)) return list;
             foreach (var file in Directory.GetFiles(sf))
             {
-                if (file.Contains("savegame_"))
+                var nm = Path.GetFileNameWithoutExtension(file);
+                if (string.IsNullOrEmpty(nm)) continue;
+                var m = re.Match(nm);
+                if (m.Success && m.Groups.Count > 2)
                 {
-                    var name = Path.GetFileName(file);
-                    list[name] = file;
+                    try
+                    {
+                        var info = File.GetAttributes(file);
+                        var dt = DateTime.ParseExact(m.Groups[1].Value, "yyMMdd-HHmmss", ci);
+                        list[nm] = new ArchiveInfo()
+                        {
+                            Path = file, 
+                            Date = dt, 
+                            Group = m.Groups[2].Value, 
+                            Locked = info.HasFlag(FileAttributes.ReadOnly), 
+                            Name = nm
+                        };
+                    }catch{}
                 }
             }
             return list;
@@ -130,6 +151,7 @@ namespace GeneralGameSaver
             bSave.Enabled = setReady;
             bRestore.Enabled = setReady && listView1.SelectedItems.Count > 0;
             bRemove.Enabled = listView1.SelectedItems.Count > 0;
+            bLock.Enabled = listView1.SelectedItems.Count > 0;
             toolStripStatusLabel1.Text = timer1.Enabled ? "Working..." : "Stopped";
             toolStripStatusLabel2.Text = _appSettings.GameCatalog;
             if (setReady) notifyIcon1.Icon = _iconList[0];
@@ -137,6 +159,15 @@ namespace GeneralGameSaver
             cmStop.Enabled = timer2.Enabled;
             startToolStripMenuItem.Enabled = !timer2.Enabled;
             stopToolStripMenuItem.Enabled = timer2.Enabled;
+            if (listView1.SelectedItems.Count > 0)
+            {
+                var ai = (ArchiveInfo) listView1.SelectedItems[0].Tag;
+                bLock.Text = ai.Locked ? "Unlock" : "Lock";
+            }
+            else
+            {
+                bLock.Text = "Lock";
+            }
         }
 
         private bool IsSettingsReady()
@@ -145,62 +176,45 @@ namespace GeneralGameSaver
                     !string.IsNullOrEmpty(_appSettings.SaveCatalog) && Directory.Exists(_appSettings.SaveCatalog));
         }
 
-        private void updateList()
+        private void updateList(bool force = false)
         {
-            var ci = Thread.CurrentThread.CurrentUICulture;
             var list = GetArchives();
-            var items = new List<ListViewItem>();
-            var lastDt = DateTime.MinValue;
-            var groups = new Dictionary<string, List<string>>();
-            var lvGroups = new Dictionary<string, ListViewGroup>();
-            var re = new Regex(@"^savegame_([\d-]+)_(.+).zip");
-            foreach (var key in list.Keys.OrderBy(r=>r))
-            {
-                try
-                {
-                    var m = re.Match(key);
-                    if (!m.Success || m.Groups.Count < 3) continue;
-                    var group = m.Groups[2].Value;
-                    var date = m.Groups[1].Value;
-                    //var parts = key.Split(new []{'_'}, 3);
-                    //if (parts.Length < 3) continue;
-                    var dt = DateTime.ParseExact(date, "yyMMdd-HHmmss", ci);
-                    if (dt > lastDt) lastDt = dt;
 
-//                    var group = parts[2];
-                    if (!groups.ContainsKey(group))
-                    {
-                        groups[group]= new List<string>();
-                        lvGroups[group] = new ListViewGroup(group);
-                    }
-                    groups[group].Add(key);
-                    var li = new ListViewItem(key);
-                    li.SubItems.Add(dt.ToString("g"));
-                    li.Group = lvGroups[group];
-                    li.Tag = list[key];
-                    items.Add(li);
-                }
-                catch
-                {
-                }
-            }
-            var l = groups.Keys.ToArray();
-            foreach (var group in l)
+            var purge = from ai in list
+                where !ai.Value.Locked
+                orderby ai.Value.Date descending
+                group ai by ai.Value.Group
+                into g
+                select new {gr = g.Key, list = g.Skip(_appSettings.NumberOfFiles)};
+
+            var lvItems = (from ai in list
+                orderby ai.Value.Date descending
+                group ai by ai.Value.Group
+                into g
+                select new LvGroup(g.Key, g.Where((r,n)=>r.Value.Locked || n < _appSettings.NumberOfFiles).Select(r=>r.Value).ToArray())).ToArray();
+
+            var lastDt = list.Max(r => r.Value.Date);
+
+
+            if (force || lastDt > _lastArchiveTime)
             {
-                if (groups[group].Count > _appSettings.NumberOfFiles)
-                {
-                    foreach (var file in groups[group].OrderByDescending(r=>r).Skip(_appSettings.NumberOfFiles))
-                    {
-                        File.Delete(list[file]);
-                    }
-                    groups[group] = groups[group].OrderByDescending(r => r).Take(_appSettings.NumberOfFiles).ToList();
-                }
-            }
-            if (lastDt > _lastArchiveTime)
-            {
+                var grps = lvItems.Select(r => r.Grp).ToArray();
+                var itms = lvItems.SelectMany(r => r.Items).ToArray();
                 listView1.Items.Clear();
-                listView1.Groups.AddRange(lvGroups.Values.ToArray());
-                listView1.Items.AddRange(items.ToArray());
+                listView1.Groups.AddRange(grps);
+                listView1.Items.AddRange(itms);
+                _lastArchiveTime = lastDt;
+            }
+
+            foreach (var gr in purge)
+            {
+                foreach (var f in gr.list)
+                {
+                    if (File.Exists(f.Value.Path))
+                    {
+                        File.Delete(f.Value.Path);
+                    }
+                }
             }
         }
 
@@ -224,7 +238,8 @@ namespace GeneralGameSaver
         private void bRestore_Click(object sender, EventArgs e)
         {
             //restore game
-            var file = (string) listView1.SelectedItems[0].Tag;
+            var archive = (ArchiveInfo)listView1.SelectedItems[0].Tag;
+            var file = archive.Path;
             if (string.IsNullOrEmpty(file) || !File.Exists(file) || string.IsNullOrEmpty(_appSettings.GameCatalog)) return;
             var fn = Path.GetFileName(file);
             var res = MessageBox.Show(string.Format("Are you really want to restore savegame:\n'{0}'?\n\nWARNING:Current save game will be replaced with this save!", fn), "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
@@ -306,18 +321,14 @@ namespace GeneralGameSaver
 
         private void bRemove_Click(object sender, EventArgs e)
         {
-            var file = (string)listView1.SelectedItems[0].Tag;
+            var archive = (ArchiveInfo)listView1.SelectedItems[0].Tag;
+            var file = archive.Path;
             if (File.Exists(file))
             {
                 File.Delete(file);
                 updateList();
                 updateUI();
             }
-        }
-
-        private void listView1_MouseDown(object sender, MouseEventArgs e)
-        {
-            updateUI();
         }
 
         private void GameSaver_Resize(object sender, EventArgs e)
@@ -331,6 +342,40 @@ namespace GeneralGameSaver
             this.Visible = true;
             if (this.WindowState == FormWindowState.Minimized)
                 this.WindowState = FormWindowState.Normal;
+        }
+
+        private void bLock_Click(object sender, EventArgs e)
+        {
+            if (listView1.SelectedItems.Count > 0)
+            {
+                var ai = (ArchiveInfo)listView1.SelectedItems[0].Tag;
+                if (!ai.Locked)
+                {
+                    File.SetAttributes(ai.Path, FileAttributes.ReadOnly);
+                }
+                else
+                {
+                    File.SetAttributes(ai.Path, FileAttributes.Normal);
+                }
+                updateList(true);
+            }
+        }
+        private class LvGroup
+        {
+            public ListViewGroup Grp { get; set; }
+            public ListViewItem[] Items { get; set; }
+
+            public LvGroup(string group, ArchiveInfo[] items)
+            {
+                Grp = new ListViewGroup(group);
+                Items = items.Select(r => new ListViewItem(r.Name)
+                {
+                    Group = Grp,
+                    Tag = r,
+                    ImageIndex = r.Locked ? 1 : 0,
+                    SubItems = { r.Date.ToString("g")}
+                }).ToArray();
+            }
         }
     }
 }
