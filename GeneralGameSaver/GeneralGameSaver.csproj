@@ -51,6 +51,12 @@
   <ItemGroup>
     <Compile Include="AppSettings.cs" />
     <Compile Include="ArchiveInfo.cs" />
+    <Compile Include="CommentInput.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CommentInput.Designer.cs">
+      <DependentUpon>CommentInput.cs</DependentUpon>
+    </Compile>
     <Compile Include="GameSaver.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -65,6 +71,9 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="CommentInput.resx">
+      <DependentUpon>CommentInput.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="GameSaver.resx">
       <DependentUpon>GameSaver.cs</DependentUpon>
     </EmbeddedResource>

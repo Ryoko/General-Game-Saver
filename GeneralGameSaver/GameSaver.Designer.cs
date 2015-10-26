@@ -39,6 +39,7 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.startToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.stopToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -49,11 +50,14 @@
             this.listView1 = new System.Windows.Forms.ListView();
             this.colName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colDate = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colComment = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.imageList1 = new System.Windows.Forms.ImageList(this.components);
             this.bRestore = new System.Windows.Forms.Button();
             this.bSave = new System.Windows.Forms.Button();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.bStart = new System.Windows.Forms.Button();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.bLock = new System.Windows.Forms.Button();
             this.bRemove = new System.Windows.Forms.Button();
             this.bStop = new System.Windows.Forms.Button();
             this.timer2 = new System.Windows.Forms.Timer(this.components);
@@ -64,10 +68,6 @@
             this.cmSettings = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.cmExit = new System.Windows.Forms.ToolStripMenuItem();
-            this.stopToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.colComment = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.imageList1 = new System.Windows.Forms.ImageList(this.components);
-            this.bLock = new System.Windows.Forms.Button();
             this.statusStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -82,9 +82,9 @@
             this.toolStripStatusLabel4,
             this.toolStripStatusLabel3,
             this.toolStripStatusLabel2});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 626);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 630);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(602, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(803, 22);
             this.statusStrip1.TabIndex = 0;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -108,7 +108,7 @@
             // toolStripStatusLabel3
             // 
             this.toolStripStatusLabel3.Name = "toolStripStatusLabel3";
-            this.toolStripStatusLabel3.Size = new System.Drawing.Size(269, 17);
+            this.toolStripStatusLabel3.Size = new System.Drawing.Size(470, 17);
             this.toolStripStatusLabel3.Spring = true;
             // 
             // toolStripStatusLabel2
@@ -127,7 +127,7 @@
             this.helpToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(602, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(803, 24);
             this.menuStrip1.TabIndex = 1;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -146,20 +146,28 @@
             // 
             this.startToolStripMenuItem.Enabled = false;
             this.startToolStripMenuItem.Name = "startToolStripMenuItem";
-            this.startToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.startToolStripMenuItem.Size = new System.Drawing.Size(133, 22);
             this.startToolStripMenuItem.Text = "Start";
             this.startToolStripMenuItem.Click += new System.EventHandler(this.bStart_Click);
+            // 
+            // stopToolStripMenuItem
+            // 
+            this.stopToolStripMenuItem.Enabled = false;
+            this.stopToolStripMenuItem.Name = "stopToolStripMenuItem";
+            this.stopToolStripMenuItem.Size = new System.Drawing.Size(133, 22);
+            this.stopToolStripMenuItem.Text = "Stop";
+            this.stopToolStripMenuItem.Click += new System.EventHandler(this.bStop_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(149, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(130, 6);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
             this.exitToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.X)));
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(133, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
@@ -209,13 +217,14 @@
             this.listView1.Location = new System.Drawing.Point(0, 24);
             this.listView1.MultiSelect = false;
             this.listView1.Name = "listView1";
-            this.listView1.Size = new System.Drawing.Size(517, 602);
+            this.listView1.Size = new System.Drawing.Size(718, 606);
             this.listView1.SmallImageList = this.imageList1;
             this.listView1.Sorting = System.Windows.Forms.SortOrder.Descending;
             this.listView1.TabIndex = 2;
             this.listView1.UseCompatibleStateImageBehavior = false;
             this.listView1.View = System.Windows.Forms.View.Details;
             this.listView1.SelectedIndexChanged += new System.EventHandler(this.listView1_Click);
+            this.listView1.DoubleClick += new System.EventHandler(this.listView1_DoubleClick);
             // 
             // colName
             // 
@@ -226,6 +235,19 @@
             // 
             this.colDate.Text = "Date";
             this.colDate.Width = 130;
+            // 
+            // colComment
+            // 
+            this.colComment.Text = "Comment";
+            this.colComment.Width = 320;
+            // 
+            // imageList1
+            // 
+            this.imageList1.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageList1.ImageStream")));
+            this.imageList1.TransparentColor = System.Drawing.Color.Transparent;
+            this.imageList1.Images.SetKeyName(0, "lock1.png");
+            this.imageList1.Images.SetKeyName(1, "lock2.png");
+            this.imageList1.Images.SetKeyName(2, "Lock32.png");
             // 
             // bRestore
             // 
@@ -272,10 +294,21 @@
             this.panel2.Controls.Add(this.bStop);
             this.panel2.Controls.Add(this.bStart);
             this.panel2.Dock = System.Windows.Forms.DockStyle.Right;
-            this.panel2.Location = new System.Drawing.Point(517, 24);
+            this.panel2.Location = new System.Drawing.Point(718, 24);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(85, 602);
+            this.panel2.Size = new System.Drawing.Size(85, 606);
             this.panel2.TabIndex = 5;
+            // 
+            // bLock
+            // 
+            this.bLock.Enabled = false;
+            this.bLock.Location = new System.Drawing.Point(3, 175);
+            this.bLock.Name = "bLock";
+            this.bLock.Size = new System.Drawing.Size(75, 23);
+            this.bLock.TabIndex = 7;
+            this.bLock.Text = "Lock";
+            this.bLock.UseVisualStyleBackColor = true;
+            this.bLock.Click += new System.EventHandler(this.bLock_Click);
             // 
             // bRemove
             // 
@@ -357,43 +390,11 @@
             this.cmExit.Text = "Exit";
             this.cmExit.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
-            // stopToolStripMenuItem
-            // 
-            this.stopToolStripMenuItem.Enabled = false;
-            this.stopToolStripMenuItem.Name = "stopToolStripMenuItem";
-            this.stopToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.stopToolStripMenuItem.Text = "Stop";
-            this.stopToolStripMenuItem.Click += new System.EventHandler(this.bStop_Click);
-            // 
-            // colComment
-            // 
-            this.colComment.Text = "Comment";
-            this.colComment.Width = 100;
-            // 
-            // imageList1
-            // 
-            this.imageList1.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageList1.ImageStream")));
-            this.imageList1.TransparentColor = System.Drawing.Color.Transparent;
-            this.imageList1.Images.SetKeyName(0, "lock1.png");
-            this.imageList1.Images.SetKeyName(1, "lock2.png");
-            this.imageList1.Images.SetKeyName(2, "Lock32.png");
-            // 
-            // bLock
-            // 
-            this.bLock.Enabled = false;
-            this.bLock.Location = new System.Drawing.Point(3, 175);
-            this.bLock.Name = "bLock";
-            this.bLock.Size = new System.Drawing.Size(75, 23);
-            this.bLock.TabIndex = 7;
-            this.bLock.Text = "Lock";
-            this.bLock.UseVisualStyleBackColor = true;
-            this.bLock.Click += new System.EventHandler(this.bLock_Click);
-            // 
             // GameSaver
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(602, 648);
+            this.ClientSize = new System.Drawing.Size(803, 652);
             this.Controls.Add(this.listView1);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.statusStrip1);

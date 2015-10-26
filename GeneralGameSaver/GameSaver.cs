@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -120,6 +121,7 @@ namespace GeneralGameSaver
             {
                 var nm = Path.GetFileNameWithoutExtension(file);
                 if (string.IsNullOrEmpty(nm)) continue;
+                var comment = GetArchiveComment(file);
                 var m = re.Match(nm);
                 if (m.Success && m.Groups.Count > 2)
                 {
@@ -133,7 +135,8 @@ namespace GeneralGameSaver
                             Date = dt, 
                             Group = m.Groups[2].Value, 
                             Locked = info.HasFlag(FileAttributes.ReadOnly), 
-                            Name = nm
+                            Name = nm,
+                            Comment = comment
                         };
                     }catch{}
                 }
@@ -150,7 +153,6 @@ namespace GeneralGameSaver
             bStop.Enabled = timer1.Enabled;
             bSave.Enabled = setReady;
             bRestore.Enabled = setReady && listView1.SelectedItems.Count > 0;
-            bRemove.Enabled = listView1.SelectedItems.Count > 0;
             bLock.Enabled = listView1.SelectedItems.Count > 0;
             toolStripStatusLabel1.Text = timer1.Enabled ? "Working..." : "Stopped";
             toolStripStatusLabel2.Text = _appSettings.GameCatalog;
@@ -163,10 +165,12 @@ namespace GeneralGameSaver
             {
                 var ai = (ArchiveInfo) listView1.SelectedItems[0].Tag;
                 bLock.Text = ai.Locked ? "Unlock" : "Lock";
+                bRemove.Enabled = !ai.Locked;
             }
             else
             {
                 bLock.Text = "Lock";
+                bRemove.Enabled = false;
             }
         }
 
@@ -323,7 +327,7 @@ namespace GeneralGameSaver
         {
             var archive = (ArchiveInfo)listView1.SelectedItems[0].Tag;
             var file = archive.Path;
-            if (File.Exists(file))
+            if (File.Exists(file) && !archive.Locked)
             {
                 File.Delete(file);
                 updateList();
@@ -373,8 +377,56 @@ namespace GeneralGameSaver
                     Group = Grp,
                     Tag = r,
                     ImageIndex = r.Locked ? 1 : 0,
-                    SubItems = { r.Date.ToString("g")}
+                    SubItems = { r.Date.ToString("g"), " " + r.Comment}
                 }).ToArray();
+            }
+        }
+
+        private string GetArchiveComment(string file)
+        {
+            try
+            {
+                using (var zip = new Ionic.Zip.ZipFile(file))
+                {
+                    return zip.Comment;
+                }
+            }
+            catch (Exception err)
+            {
+                return "";
+            }
+        }
+
+        private void SetArchiveComment(string file, string comment)
+        {
+            try
+            {
+                var isRO = false;
+                if (File.GetAttributes(file) == FileAttributes.ReadOnly)
+                {
+                    isRO = true;
+                    File.SetAttributes(file, FileAttributes.Normal);
+                }
+                using (var zip = new Ionic.Zip.ZipFile(file))
+                {
+                    zip.Comment = comment;
+                    zip.Save();
+                }
+                if (isRO)
+                    File.SetAttributes(file, FileAttributes.ReadOnly);
+            }
+            catch { }
+        }
+
+        private void listView1_DoubleClick(object sender, EventArgs e)
+        {
+            if (listView1.SelectedItems.Count < 0) return;
+            var archive = (ArchiveInfo) listView1.SelectedItems[0].Tag;
+            var dlgComment = new CommentInput(archive.Comment);
+            if (dlgComment.ShowDialog(this) == DialogResult.OK)
+            {
+                SetArchiveComment(archive.Path, dlgComment.Comment);
+                updateList(true);
             }
         }
     }
