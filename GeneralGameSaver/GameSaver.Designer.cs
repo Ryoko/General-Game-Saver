@@ -64,6 +64,7 @@
             this.cmSettings = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.cmExit = new System.Windows.Forms.ToolStripMenuItem();
+            this.stopToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -131,6 +132,7 @@
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.startToolStripMenuItem,
+            this.stopToolStripMenuItem,
             this.toolStripSeparator1,
             this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
@@ -318,7 +320,7 @@
             // 
             this.cmStart.Enabled = false;
             this.cmStart.Name = "cmStart";
-            this.cmStart.Size = new System.Drawing.Size(152, 22);
+            this.cmStart.Size = new System.Drawing.Size(116, 22);
             this.cmStart.Text = "Start";
             this.cmStart.Click += new System.EventHandler(this.bStart_Click);
             // 
@@ -326,28 +328,36 @@
             // 
             this.cmStop.Enabled = false;
             this.cmStop.Name = "cmStop";
-            this.cmStop.Size = new System.Drawing.Size(152, 22);
+            this.cmStop.Size = new System.Drawing.Size(116, 22);
             this.cmStop.Text = "Stop";
             this.cmStop.Click += new System.EventHandler(this.bStop_Click);
             // 
             // cmSettings
             // 
             this.cmSettings.Name = "cmSettings";
-            this.cmSettings.Size = new System.Drawing.Size(152, 22);
+            this.cmSettings.Size = new System.Drawing.Size(116, 22);
             this.cmSettings.Text = "Settings";
             this.cmSettings.Click += new System.EventHandler(this.settingsToolStripMenuItem_Click);
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(149, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(113, 6);
             // 
             // cmExit
             // 
             this.cmExit.Name = "cmExit";
-            this.cmExit.Size = new System.Drawing.Size(152, 22);
+            this.cmExit.Size = new System.Drawing.Size(116, 22);
             this.cmExit.Text = "Exit";
             this.cmExit.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
+            // 
+            // stopToolStripMenuItem
+            // 
+            this.stopToolStripMenuItem.Enabled = false;
+            this.stopToolStripMenuItem.Name = "stopToolStripMenuItem";
+            this.stopToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.stopToolStripMenuItem.Text = "Stop";
+            this.stopToolStripMenuItem.Click += new System.EventHandler(this.bStop_Click);
             // 
             // GameSaver
             // 
@@ -410,6 +420,7 @@
         private System.Windows.Forms.ToolStripMenuItem cmSettings;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripMenuItem cmExit;
+        private System.Windows.Forms.ToolStripMenuItem stopToolStripMenuItem;
     }
 }
 

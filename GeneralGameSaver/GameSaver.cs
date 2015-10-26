@@ -135,6 +135,8 @@ namespace GeneralGameSaver
             if (setReady) notifyIcon1.Icon = _iconList[0];
             cmStart.Enabled = !timer2.Enabled;
             cmStop.Enabled = timer2.Enabled;
+            startToolStripMenuItem.Enabled = !timer2.Enabled;
+            stopToolStripMenuItem.Enabled = timer2.Enabled;
         }
 
         private bool IsSettingsReady()
