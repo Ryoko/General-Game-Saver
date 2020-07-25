@@ -71,7 +71,13 @@ namespace GeneralGameSaver
 
         private void bSave_Click(object sender, EventArgs e)
         {
+            var isStarted = timer2.Enabled;
+            StartStop(false);
+
             saveGame();
+
+            if (isStarted)
+                StartStop(true);
         }
 
         private void saveGame()
@@ -80,15 +86,25 @@ namespace GeneralGameSaver
                 return;
             var dt = DateTime.MinValue;
             var path = _appSettings.GameCatalog;
-            using (var zipfile = new Ionic.Zip.ZipFile())
+            try
             {
-                RecursiveArchivate(path, zipfile, "", ref dt);
-                dt = new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second);
-                if (dt <= _lastArchiveTime) return;
-                var name = Path.GetFileNameWithoutExtension(_appSettings.GameCatalog);
-                var filename = string.Format("{0}\\savegame_{1}_{2}.zip", _appSettings.SaveCatalog, dt.ToString("yyMMdd-HHmmss"), name);
-                zipfile.Save(filename);
-                File.SetLastWriteTime(filename, dt);
+                using (var zipfile = new Ionic.Zip.ZipFile())
+                {
+                    RecursiveArchivate(path, zipfile, "", ref dt);
+                    dt = new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second);
+                    if (dt <= _lastArchiveTime) return;
+                    var gameCatalog = _appSettings.GameCatalog.TrimEnd(new[] {'\\'});
+                    var name = Path.GetFileNameWithoutExtension(gameCatalog);
+                    var filename = string.Format("{0}\\savegame_{1}_{2}.zip", _appSettings.SaveCatalog,
+                        dt.ToString("yyMMdd-HHmmss"), name);
+                    zipfile.Save(filename);
+                    File.SetLastWriteTime(filename, dt);
+                }
+            }
+            catch (Exception er)
+            {
+                MessageBox.Show(string.Format("Save game error: {0}", er.Message), "Error", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, MessageBoxOptions.ServiceNotification);
             }
             updateList();
             updateUI();
@@ -98,9 +114,20 @@ namespace GeneralGameSaver
             foreach (var file in Directory.GetFiles(path))
             {
                 //if (!CheckFile(file)) continue;
-                var fdt = File.GetLastWriteTime(file);
-                if (fdt > dt) dt = File.GetLastWriteTime(file);
-                zip.AddFile(file, relPath);
+                try
+                {
+                    if (file.Contains("PendingOverwrite"))
+                    {
+                        continue;
+                    }
+                    var fdt = File.GetLastWriteTime(file);
+                    var attr = File.GetAccessControl(file);
+                    if (fdt > dt) dt = File.GetLastWriteTime(file);
+                    zip.AddFile(file, relPath);
+                }catch(Exception err)
+                {
+
+                }
             }
             foreach (string directory in Directory.GetDirectories(path))
             {
@@ -113,7 +140,7 @@ namespace GeneralGameSaver
         {
  //           Shaman.DotNet archiveInfo
             var ci = Thread.CurrentThread.CurrentUICulture;
-            var re = new Regex(@"^savegame_([\d-]+)_(.+)");
+            var re = new Regex(@"^savegame_([\d-]+)_(.*)");
             var list = new Dictionary<string, ArchiveInfo>();
             var sf = _appSettings.SaveCatalog;
             if (string.IsNullOrEmpty(sf)) return list;
@@ -197,7 +224,7 @@ namespace GeneralGameSaver
                 into g
                 select new LvGroup(g.Key, g.Where((r,n)=>r.Value.Locked || n < _appSettings.NumberOfFiles).Select(r=>r.Value).ToArray())).ToArray();
 
-            var lastDt = list.Max(r => r.Value.Date);
+            var lastDt = list.Any() ? list.Max(r => r.Value.Date) : DateTime.MinValue;
 
 
             if (force || lastDt > _lastArchiveTime)
@@ -242,6 +269,9 @@ namespace GeneralGameSaver
         private void bRestore_Click(object sender, EventArgs e)
         {
             //restore game
+            var isStarted = timer2.Enabled;
+            StartStop(false);
+
             var archive = (ArchiveInfo)listView1.SelectedItems[0].Tag;
             var file = archive.Path;
             if (string.IsNullOrEmpty(file) || !File.Exists(file) || string.IsNullOrEmpty(_appSettings.GameCatalog)) return;
@@ -268,6 +298,9 @@ namespace GeneralGameSaver
                 return;
             }
             MessageBox.Show(string.Format("We've successfully restored archived save game:\n'{0}'!", fn), "Success!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+            if (isStarted)
+                StartStop(true);
         }
 
         private int _startTimer;
@@ -313,6 +346,7 @@ namespace GeneralGameSaver
             notifyIcon1.Icon = _iconList[_imageNo--];
             if (_imageNo < (int) ImagesEnum.GameSaver1) _imageNo = (int) ImagesEnum.GameSaver9;
             var t = Environment.TickCount - _startTimer;
+            if (t > toolStripProgressBar1.Maximum) t = toolStripProgressBar1.Maximum;
             toolStripProgressBar1.Value = t;
             toolStripStatusLabel4.Text = new TimeSpan(0,0,0,((int)_appSettings.SaveInterval.TotalMilliseconds - t)/1000).ToString("g");
         }
@@ -428,6 +462,11 @@ namespace GeneralGameSaver
                 SetArchiveComment(archive.Path, dlgComment.Comment);
                 updateList(true);
             }
+        }
+
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            new About().ShowDialog();
         }
     }
 }
