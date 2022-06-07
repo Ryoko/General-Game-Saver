@@ -20,13 +20,15 @@ namespace GeneralGameSaver
     public partial class GameSaver : Form
     {
         private AppSettings _appSettings;
+        private AllGamesSettings allGamesSettings;
         private readonly List<Icon> _iconList;
         public GameSaver()
         {
             InitializeComponent(); 
             _iconList = new List<Icon>();
             loadIcons();
-            _appSettings = new AppSettings();
+            allGamesSettings = AllGamesSettings.LoadSettings();
+            _appSettings = new AppSettings(allGamesSettings.CurrentGameSettings);
             updateList();
             updateUI();
             if (IsSettingsReady())
@@ -64,7 +66,9 @@ namespace GeneralGameSaver
             var res = parDialog.ShowDialog();
             if (res == DialogResult.OK)
             {
-                _appSettings = new AppSettings();
+                allGamesSettings = AllGamesSettings.LoadSettings();
+                _appSettings = new AppSettings(allGamesSettings.CurrentGameSettings);
+                updateList(true);
                 updateUI();
             }
         }
@@ -116,7 +120,7 @@ namespace GeneralGameSaver
                 //if (!CheckFile(file)) continue;
                 try
                 {
-                    if (file.Contains("PendingOverwrite"))
+                    if (file.Contains("PendingOverwrite") || file.EndsWith(".lock"))
                     {
                         continue;
                     }
@@ -143,7 +147,8 @@ namespace GeneralGameSaver
             var re = new Regex(@"^savegame_([\d-]+)_(.*)");
             var list = new Dictionary<string, ArchiveInfo>();
             var sf = _appSettings.SaveCatalog;
-            if (string.IsNullOrEmpty(sf)) return list;
+            if (string.IsNullOrEmpty(sf) || !Directory.Exists(sf)) return list;
+
             foreach (var file in Directory.GetFiles(sf))
             {
                 var nm = Path.GetFileNameWithoutExtension(file);
@@ -282,20 +287,23 @@ namespace GeneralGameSaver
                 return;
             }
 
-            try
+
+            using (var zip = new Ionic.Zip.ZipFile(file))
             {
-                using (var zip = new Ionic.Zip.ZipFile(file))
+                foreach (var f in zip)
                 {
-                    foreach (var f in zip)
+                    try
                     {
                         f.Extract(_appSettings.GameCatalog, Ionic.Zip.ExtractExistingFileAction.OverwriteSilently);
                     }
+                    catch (Exception err)
+                    {
+                        if (f.FileName.EndsWith("pregenData.json"))
+                            continue;
+                        MessageBox.Show($"Some error(s) was rased while we've tryed to restore archived save game:\n\r'{file}'\n\rError on restoring file:\n\r{f.FileName}\n\rError message:\n\r'{err.Message}'", "Huston, we have a problem!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
                 }
-            }
-            catch (Exception err)
-            {
-                MessageBox.Show(string.Format("Some error(s) was rased while we've tryed to restore archived save game:\n'{0}'.\nError message was:\n'{1}'", file, err.Message), "Huston, we have a problem!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
             }
             MessageBox.Show(string.Format("We've successfully restored archived save game:\n'{0}'!", fn), "Success!", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
@@ -364,7 +372,7 @@ namespace GeneralGameSaver
             if (File.Exists(file) && !archive.Locked)
             {
                 File.Delete(file);
-                updateList();
+                updateList(true);
                 updateUI();
             }
         }
