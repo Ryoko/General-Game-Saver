@@ -13,64 +13,31 @@ namespace GeneralGameSaver
     [DefaultProperty("SaveCatalog")]
     class AppSettings
     {
-        private string _gameCatalog;
-        private string _saveCatalog;
-        private bool _autoStart;
-        private TimeSpan _saveInterval;
-        private int _numberOfFiles;
+        [ReadOnlyAttribute(false), EditorAttribute(typeof(BrowseFolderEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string GameCatalog { get => currentGameSettings.GameCatalog; set => currentGameSettings.GameCatalog = value; }
 
         [ReadOnlyAttribute(false), EditorAttribute(typeof(BrowseFolderEditor), typeof(System.Drawing.Design.UITypeEditor))]
-        public string GameCatalog
-        {
-            get { return _gameCatalog; } 
-            set { _gameCatalog = value; }
-        }
+        public string SaveCatalog { get => currentGameSettings.SaveCatalog; set => currentGameSettings.SaveCatalog = value; }
 
-        [ReadOnlyAttribute(false), EditorAttribute(typeof(BrowseFolderEditor), typeof(System.Drawing.Design.UITypeEditor))]
-        public string SaveCatalog 
-        {
-            get { return _saveCatalog; }
-            set { _saveCatalog = value; }
-        }
+        public bool AutoStart { get => currentGameSettings.Autostart; set => currentGameSettings.Autostart = value; }
 
-        public bool AutoStart
-        {
-            get { return _autoStart; }
-            set { _autoStart = value; }
-        }
+        public TimeSpan SaveInterval { get => currentGameSettings.Interval; set => currentGameSettings.Interval = value; }
 
-        public TimeSpan SaveInterval
-        {
-            get { return _saveInterval; }
-            set { _saveInterval = value; }
-        }
+        public int NumberOfFiles { get => currentGameSettings.NumberOfFiles; set => currentGameSettings.NumberOfFiles = value; }
 
-        public int NumberOfFiles
+        public AppSettings(GameSettings s)
         {
-            get { return _numberOfFiles; }
-            set { _numberOfFiles = value; }
-        }
-
-        public AppSettings()
-        {
-            var s = Properties.Settings.Default;
-            _gameCatalog = s.GameCatalog;
-            _saveCatalog = s.SaveCatalog;
-            _autoStart = s.Autostart;
-            _saveInterval = s.Interval;
-            _numberOfFiles = s.NumberOfFiles;
+            //var s = Properties.Settings.Default;
+            currentGameSettings = s;
         }
 
         public void PropertySave()
         {
-            var s = Properties.Settings.Default;
-            s.GameCatalog = _gameCatalog;
-            s.SaveCatalog = _saveCatalog;
-            s.Autostart = _autoStart;
-            s.Interval = _saveInterval;
-            s.NumberOfFiles = _numberOfFiles;
-            s.Save();
+            currentGameSettings.Save();
         }
+
+        [Browsable(false)]
+        public GameSettings currentGameSettings { get; set; }
     }
 
     public class CatalogName : StringConverter

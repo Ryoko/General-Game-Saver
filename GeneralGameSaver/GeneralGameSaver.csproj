@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>GeneralGameSaver</RootNamespace>
     <AssemblyName>GeneralGameSaver</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -31,13 +32,18 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Project1.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Ionic.Zip">
       <HintPath>..\packages\DotNetZip.1.9.6\lib\net20\Ionic.Zip.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
@@ -47,25 +53,46 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AppSettings.cs" />
+    <Compile Include="Settings\AllGamesSettings.cs" />
+    <Compile Include="Settings\AppSettings.cs" />
+    <Compile Include="ArchiveInfo.cs" />
+    <Compile Include="CommentInput.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CommentInput.Designer.cs">
+      <DependentUpon>CommentInput.cs</DependentUpon>
+    </Compile>
+    <Compile Include="About.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="About.Designer.cs">
+      <DependentUpon>About.cs</DependentUpon>
+    </Compile>
     <Compile Include="GameSaver.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="GameSaver.Designer.cs">
       <DependentUpon>GameSaver.cs</DependentUpon>
     </Compile>
-    <Compile Include="Parameters.cs">
+    <Compile Include="Settings\Parameters.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Parameters.Designer.cs">
+    <Compile Include="Settings\Parameters.Designer.cs">
       <DependentUpon>Parameters.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Settings\GameSettings.cs" />
+    <EmbeddedResource Include="CommentInput.resx">
+      <DependentUpon>CommentInput.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="About.resx">
+      <DependentUpon>About.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="GameSaver.resx">
       <DependentUpon>GameSaver.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Parameters.resx">
+    <EmbeddedResource Include="Settings\Parameters.resx">
       <DependentUpon>Parameters.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -76,6 +103,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="packages.config" />
     <None Include="Properties\DataSources\GeneralGameSaver.Properties.Settings.datasource" />
@@ -91,6 +119,39 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\GameSaver1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\GameSaver2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\GameSaver3.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\GameSaver4.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\GameSaver5.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\GameSaver6.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\GameSaver7.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\GameSaver8.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\GameSaver9.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\GameSaverStop.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Project1.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
